@@ -177,7 +177,7 @@ Note that if the default value being referenced is a table, it will be deepcopie
 
 * Metatables are never copied.
 * Table keys are never copied.
-* Every table in either config (default or user) must be unique. That is, using the same table object twice is not supported. This is to avoid ambiguous cases such as the following:
+* Every table in either config (default or user) must be unique. That is, using the same table object twice is not supported. This limitation doesn't apply to tables supplied to the `SET` keyword or returned via the `UPDATE` keyword. This is to avoid ambiguous cases such as the following:
 ```lua
 local a = { b = "c" }
 
@@ -193,7 +193,6 @@ configer.resolve({
 	},
 })
 ```
-Note that this one limitation doesn't apply to tables supplied to the `SET` keyword or returned via the `UPDATE` keyword.
 
 
 
