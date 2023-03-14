@@ -22,7 +22,7 @@ For example, if some library uses a configuration that looks something like this
 	...
 }
 ```
-and the user wants to change `commands.hello.response`, double the cooldown and rename `commands.goodbye` to `commands.farewell` without having to copy the entire configuration (which could be very long), they can just specify
+and the user wants to change `commands.hello.response`, double the cooldown and rename `commands.goodbye` to `commands.farewell` without having to copy the entire configuration (which could be very long), they can just specify:
 ```lua
 {
 	commands = {
@@ -74,7 +74,7 @@ Returns `env`.
 
 configer understands a set of keywords which dictate how user configurations are merged. Keywords are meant to be injected into the config loader environment by the library using configer. The only guarantees about values produced by keywords are that they are truthy and not primitive. Programs using configer should treat them as black boxes.
 
-Keyword cannot be nested in any way.
+Keywords cannot be nested in any way. That is, they cannot be passed to `SET` or be returned from `UPDATE`.
 
 #### `NIL`
 
@@ -100,7 +100,7 @@ results in
 
 #### `UPDATE`
 
-The `UPDATE` keyword takes a function and then applies it to the default value instead of replacing it. The function received one argument --- a copy of the default value --- and its return is used as the final value verbatim.
+The `UPDATE` keyword takes a function and then applies it to the default value instead of replacing it. The function receives one argument — a copy of the default value — and its return is used as the final value verbatim.
 
 ```lua
 configer.resolve(
@@ -170,7 +170,7 @@ results in
 }
 ```
 
-Note that if the default value being referenced is a table, it will be deepcopied again and the resulting tables will be unique.
+Note that if the default value being referenced is a table, it will be deepcopied again. In other words, in the example above, if a table had been used instead of `"3"`, `result.a` and `result.b` would have different identities.
 
 
 ### Caveats, Exceptions and Limitations
