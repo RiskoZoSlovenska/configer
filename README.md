@@ -100,15 +100,15 @@ results in
 
 #### `UPDATE`
 
-The `UPDATE` keyword takes a function and then applies it to the default value instead of replacing it. The function receives one argument — a copy of the default value — and its return is used as the final value verbatim.
+The `UPDATE` keyword takes a function and then uses it to modify the default value instead of blindly replacing it. Said function receives a deepcopy of the default value as the first argument and its return is used as the final value verbatim. Additional arguments may be supplied to the `UPDATE` keyword; they are passed directly to the function as additional arguments.
 
 ```lua
 configer.resolve(
 	{
-		a = 41,
+		a = 40,
 	},
 	{
-		a = UPDATE (function(x) return x + 1 end),
+		a = UPDATE (function(x, n) return x + n end, 2),
 	}
 )
 ```

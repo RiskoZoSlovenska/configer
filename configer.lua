@@ -58,8 +58,12 @@ local SET = function(value)
 	end
 end
 
-local UPDATE = function(updater)
-	return make(updates, updater)
+local UPDATE = function(updater, ...)
+	return make(updates, {
+		updater = updater,
+		n = select("#", ...),
+		...
+	})
 end
 
 local defaultMeta; defaultMeta = {
@@ -113,9 +117,9 @@ local function _resolve(default, new, topDefault, level)
 	end
 
 	-- UPDATE
-	local updater = updates[new]
-	if updater then
-		return updater(deepcopy(default))
+	local payload = updates[new]
+	if payload then
+		return payload.updater(deepcopy(default), table.unpack(payload, 1, payload.n))
 	end
 
 	-- Merge

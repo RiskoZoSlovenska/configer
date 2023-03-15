@@ -62,6 +62,22 @@ describe("configer", function()
 			assert.are.equal(resolved, resolved[3])
 			assert.are.not_equal(resolved, resolved[1])
 		end)
+
+		it("should pass extra arguments to the updater verbatim", function()
+			local a, b = 3, {}
+			local func = function(val, c, d)
+				assert.are.equal(b, d)
+				return val + c
+			end
+
+			assert.are.same({ a = 5 }, configer.resolve({ a = 2 }, { a = UPDATE(func, a, b) }))
+		end)
+
+		it("should pass the same number of extra arguments to the updater as it was given", function()
+			configer.resolve(nil, UPDATE(function(_, ...)
+				assert.are.same(5, select("#", ...))
+			end, nil, nil, true, nil, nil))
+		end)
 	end)
 
 	describe("SET keyword", function()
