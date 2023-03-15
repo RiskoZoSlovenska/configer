@@ -2,6 +2,7 @@ package = "configer"
 version = "0.2.0-1"
 source = {
    url = "git+https://github.com/RiskoZoSlovenska/configer",
+   tag = "0.2.0",
 }
 description = {
    summary = "A configuration merger for Lua",
