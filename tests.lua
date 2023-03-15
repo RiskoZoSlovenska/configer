@@ -6,6 +6,24 @@ configer.inject(_G)
 
 ---@diagnostic disable: undefined-global, need-check-nil
 describe("configer", function()
+	it("should be capable of injecting the keywords into an environment", function()
+		local env = configer.inject({})
+
+		assert.are.equal(NIL, env.NIL)
+		assert.are.equal(SET, env.SET)
+		assert.are.equal(UPDATE, env.UPDATE)
+		assert.are.equal(DEFAULT, env.DEFAULT)
+
+		assert.has.no.error(function() configer.inject(env) end)
+	end)
+
+	it("should not overwrite existing environment values when injecting", function()
+		assert.has.error(function() configer.inject({ NIL = true }) end, "name conflict when injecting into environment: NIL")
+		assert.has.error(function() configer.inject({ SET = true }) end, "name conflict when injecting into environment: SET")
+		assert.has.error(function() configer.inject({ UPDATE = true }) end, "name conflict when injecting into environment: UPDATE")
+		assert.has.error(function() configer.inject({ DEFAULT = true }) end, "name conflict when injecting into environment: DEFAULT")
+	end)
+
 	describe("NIL keyword", function()
 		it("shouldn't be nil", function()
 			assert.is.not_nil(NIL)
