@@ -36,9 +36,11 @@ local function deepcopy(tbl, seen)
 end
 
 
-local sets = {}
-local updates = {}
-local defaults = {}
+local WEAK_META = { __mode = "k" }
+
+local sets = setmetatable({}, WEAK_META)
+local updates = setmetatable({}, WEAK_META)
+local defaults = setmetatable({}, WEAK_META)
 
 local NIL = {}
 

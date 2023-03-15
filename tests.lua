@@ -226,4 +226,21 @@ describe("configer", function()
 		assert.has.no.error(function() resolve(t2_1, t2_2) end)
 		assert.has.no.error(function() resolve(t2_1, t2_3) end)
 	end)
+
+	it("should not prevent keyword-created values from being GC'd", function()
+		local tbl = setmetatable({
+			[1] = {}, -- Control case
+			[2] = SET({}),
+			[3] = UPDATE(function() end),
+			[4] = DEFAULT.value,
+		}, { __mode = "v" })
+
+		collectgarbage()
+		collectgarbage()
+
+		assert.is_nil(tbl[1], "control table was not GC'd")
+		assert.is_nil(tbl[2], "SET-created value was not GC'd")
+		assert.is_nil(tbl[3], "UPDATE-created value was not GC'd")
+		assert.is_nil(tbl[4], "DEFAULT-created value was not GC'd")
+	end)
 end)
