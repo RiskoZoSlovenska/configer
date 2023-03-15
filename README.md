@@ -43,7 +43,13 @@ and the user wants to change `commands.hello.response`, double the cooldown and 
 
 ## Installation
 
-Needs Lua 5.1 or higher; will be published to Luarocks soon.
+Get it from [LuaRocks](https://luarocks.org/):
+
+```
+luarocks install configer
+```
+
+Needs Lua 5.2 or higher, but should work in 5.1 environments that have 5.2 compatibility turned on.
 
 
 
