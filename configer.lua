@@ -83,9 +83,10 @@ local function retrieve(value, path, level)
 	local cur = value
 
 	for i, key in ipairs(path) do
-		if type(cur) ~= "table" then
-			local pathName = "DEFAULT." .. table.concat(path, ".", 1, i)
-			error("attempt to access index of non-table default value: " .. pathName, level + 1)
+		local t = type(cur)
+		if t ~= "table" then
+			local pathString = "DEFAULT." .. table.concat(path, ".", 1, i)
+			error(string.format("invalid DEFAULT access: %s (trying to index a %s)", pathString, t), level + 1)
 		end
 		cur = cur[key]
 	end
