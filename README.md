@@ -63,11 +63,31 @@ and contains the following functions and keywords as values.
 
 ### Functions
 
-#### `configer.resolve(default, new)`
+#### `configer.resolve(default, new, options)`
 
 Takes a default configuration and a user-provided one and merges them. Normally, the operation is a simple deep merge --- values in `new` overwrite values in `default`, except if both the default value and the user value is a table, in which case they are recursively merged in the same manner --- but this behavior can be changed by the presence of [Keywords](#keywords).
 
 This function does not modify `default` nor `new` and deepcopies any tables it uses from either source.
+
+The `options` table may contain the following fields:
+* `merger`: A function that can be used to copy or merge any custom objects that shouldn't be passed through configer's default copy function. The `merger` should take three values, `new`, `old` and `check`, and should return two values, `ok` and `res`. `new` is the **kept** *or* **incoming** value, `old` *may* be an existing value, and `check` is a boolean which is truthy if the function is being called only to determine if a certain value is an object or not (this information is used to prevent objects being checked for containing duplicate tables). If `ok` is truthy, configer takes `res` verbatim as the result of the merge; otherwise, the result of the merger is discarded and the value is copied/merged normally. As an example, a minimal merger function which just passes any custom objects through unaltered would look like this:
+```lua
+local function merger(obj, _, _)
+	return isCustomObject(obj), obj
+end
+```
+A slightly more sophisticated a merger which also copies/merges objects will probably look like this:
+```lua
+local function merger(keptOrIncoming, old, justChecking)
+	if justChecking then
+		return isCustomObject(keptOrIncoming), nil
+	elseif isCustomObject(keptOrIncoming) and isCustomObject(old) then
+		return true, mergeCustomObjects(keptOrIncoming, old)
+	elseif isCustomObject(keptOrIncoming) then
+		return true, copyCustomObject(keptOrIncoming)
+	end
+end
+```
 
 #### `configer.inject(env)`
 

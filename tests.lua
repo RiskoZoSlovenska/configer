@@ -213,6 +213,69 @@ describe("configer", function()
 		}))
 	end)
 
+	it("should allow a custom merger", function()
+		local objs = {}
+		local sharedTbl = {}
+
+		local function newObj(isMerge)
+			local obj = { sharedTbl, merged = isMerge }
+			objs[obj] = true
+			return obj
+		end
+
+		local function isObj(obj)
+			return objs[obj] ~= nil
+		end
+
+
+		local def = {
+			a = "idk",
+			b = newObj(),
+			c = newObj(),
+			d = newObj(),
+			e = newObj(),
+		}
+
+		local inpSetObj = newObj()
+		local inp = {
+			a = newObj(),
+			b = newObj(),
+			c = NIL,
+			d = "yes",
+			e = SET(inpSetObj),
+		}
+
+		local out = resolve(def, inp, {
+			isObject = isObj,
+			merger = function(new, old, justChecking)
+				if justChecking then
+					return isObj(new), nil
+				elseif isObj(old) and isObj(new) then
+					return true, newObj(true)
+				elseif isObj(new) then
+					return true, newObj()
+				end
+			end,
+		})
+
+
+		assert.are.same({
+			a = { sharedTbl },
+			b = { sharedTbl, merged = true },
+			c = nil,
+			d = "yes",
+			e = { sharedTbl },
+		}, out)
+		assert.are.not_equal(out.a, inp.a)
+		assert.are.not_equal(out.b, def.b)
+		assert.are.not_equal(out.b, inp.b)
+		assert.are.not_equal(out.e, def.e)
+		assert.are.not_equal(out.e, inpSetObj)
+		assert.is.truthy(isObj(out.a))
+		assert.is.truthy(isObj(out.b))
+		assert.is.truthy(isObj(out.e))
+	end)
+
 	it("should copy values properly in general", function()
 		local t1_1 = {}
 		local t1 = { t1_1 }

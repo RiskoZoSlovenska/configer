@@ -1,7 +1,7 @@
-local function verifySubtablesAreUnique(tbl, seen)
+local function verifySubtablesAreUnique(tbl, merger, seen)
 	seen = seen or {}
 
-	if type(tbl) ~= "table" then
+	if type(tbl) ~= "table" or (merger and merger(tbl, nil, true)) then
 		return true
 	elseif seen[tbl] then
 		return false
@@ -10,7 +10,7 @@ local function verifySubtablesAreUnique(tbl, seen)
 	seen[tbl] = true
 
 	for _, v in pairs(tbl) do
-		if not verifySubtablesAreUnique(v, seen) then
+		if not verifySubtablesAreUnique(v, merger, seen) then
 			return false
 		end
 	end
@@ -18,7 +18,14 @@ local function verifySubtablesAreUnique(tbl, seen)
 	return true
 end
 
-local function deepcopy(tbl, seen)
+local function deepcopy(tbl, merger, seen)
+	if merger then
+		local ok, copied = merger(tbl, nil)
+		if ok then
+			return copied
+		end
+	end
+
 	if type(tbl) ~= "table" then
 		return tbl
 	end
@@ -29,7 +36,7 @@ local function deepcopy(tbl, seen)
 	seen[tbl] = new
 
 	for k, v in pairs(tbl) do
-		new[k] = seen[v] or deepcopy(v, seen)
+		new[k] = seen[v] or deepcopy(v, merger, seen)
 	end
 
 	return new
@@ -98,7 +105,7 @@ local function retrieve(value, path, level)
 	return cur
 end
 
-local function _resolve(default, new, topDefault, level)
+local function _resolve(default, new, merger, topDefault, level)
 	-- NIL
 	if new == NIL then
 		return nil
@@ -107,49 +114,66 @@ local function _resolve(default, new, topDefault, level)
 	-- SET
 	local value = sets[new]
 	if value ~= nil then
-		return deepcopy(value)
+		return deepcopy(value, merger)
 	end
 
 	-- DEFAULT
 	local path = defaults[new]
 	if path then
-		return deepcopy(retrieve(topDefault, path, level + 1))
+		return deepcopy(retrieve(topDefault, path, level + 1), merger)
 	end
 
 	-- UPDATE
 	local payload = updates[new]
 	if payload then
-		return payload.updater(deepcopy(default), table.unpack(payload, 1, payload.n))
+		return payload.updater(deepcopy(default, merger), table.unpack(payload, 1, payload.n))
 	end
 
 	-- Merge
-	if type(new) == "table" and type(default) == "table" then
-		local merged = deepcopy(default)
+	if merger then
+		local ok, merged = merger(new, default)
+		if ok then
+			return merged
+		end
+	end
 
+	if type(new) == "table" and type(default) == "table" then
+		local merged = {}
+
+		-- Copy over all the values we're not merging
+		for k, v in pairs(default) do
+			if new[k] == nil then
+				merged[k] = deepcopy(v, merger)
+			end
+		end
+
+		-- Merge the remaining values
 		for k, v in pairs(new) do
-			merged[k] = _resolve(merged[k], v, topDefault, level + 1)
+			merged[k] = _resolve(default[k], v, merger, topDefault, level + 1)
 		end
 
 		return merged
 
 	-- Override
 	elseif new ~= nil then
-		return deepcopy(new)
+		return deepcopy(new, merger)
 
 	-- Keep default
 	else
-		return deepcopy(default)
+		return deepcopy(default, merger)
 	end
 end
 
-local function resolve(default, new)
-	if not verifySubtablesAreUnique(default) then
+local function resolve(default, new, options)
+	local merger = options and options.merger or nil
+
+	if not verifySubtablesAreUnique(default, merger) then
 		error("repeated table in default config", 2)
-	elseif not verifySubtablesAreUnique(new) then
+	elseif not verifySubtablesAreUnique(new, merger) then
 		error("repeated table in incoming config", 2)
 	end
 
-	return _resolve(default, new, default, 2)
+	return _resolve(default, new, merger, default, 2)
 end
 
 
