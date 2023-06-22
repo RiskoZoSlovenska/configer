@@ -79,11 +79,13 @@ end
 A slightly more sophisticated a merger which also copies/merges objects will probably look like this:
 ```lua
 local function merger(keptOrIncoming, old, justChecking)
+	local isCustom = isCustomObject(keptOrIncoming)
+
 	if justChecking then
-		return isCustomObject(keptOrIncoming), nil
-	elseif isCustomObject(keptOrIncoming) and isCustomObject(old) then
+		return isCustom, nil
+	elseif isCustom and isCustomObject(old) then
 		return true, mergeCustomObjects(keptOrIncoming, old)
-	elseif isCustomObject(keptOrIncoming) then
+	elseif isCustom then
 		return true, copyCustomObject(keptOrIncoming)
 	end
 end
