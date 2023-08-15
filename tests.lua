@@ -314,11 +314,13 @@ describe("configer", function()
 		local t3 = { t1, t1 }
 		local t4 = {}
 		t4[1] = t4
+		local t5 = { { [false] = t1 }, [false] = t1 }
 
-		assert.has.error(function() resolve(t3, nil) end, "repeated table in default config")
-		assert.has.error(function() resolve(t4, nil) end, "repeated table in default config")
-		assert.has.error(function() resolve(nil, t3) end, "repeated table in incoming config")
-		assert.has.error(function() resolve(nil, t4) end, "repeated table in incoming config")
+		assert.error.matches(function() resolve(t3, nil) end, "repeated table in default config at keys '[12]' and '[12]'")
+		assert.error.matches(function() resolve(t4, nil) end, "repeated table in default config at keys '<root>' and '1'")
+		assert.error.matches(function() resolve(t5, nil) end, "repeated table in default config at keys 'false' and 'false'")
+		assert.error.matches(function() resolve(nil, t3) end, "repeated table in incoming config at keys '[12]' and '[12]'")
+		assert.error.matches(function() resolve(nil, t4) end, "repeated table in incoming config at keys '<root>' and '1'")
 		assert.has.no.error(function() resolve(t1, t1) end)
 		assert.has.no.error(function() resolve(t2_1, t2_2) end)
 		assert.has.no.error(function() resolve(t2_1, t2_3) end)

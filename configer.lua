@@ -1,21 +1,18 @@
-local function verifySubtablesAreUnique(tbl, merger, seen)
+local function verifySubtablesAreUnique(where, tbl, merger, level, key, seen)
 	seen = seen or {}
+	key = (key == nil) and "<root>" or key
 
 	if type(tbl) ~= "table" or (merger and merger(tbl, nil, true)) then
-		return true
-	elseif seen[tbl] then
-		return false
+		return
+	elseif seen[tbl] ~= nil then
+		error(string.format("repeated table in %s config at keys '%s' and '%s'", where, seen[tbl], key), level + 1)
 	end
 
-	seen[tbl] = true
+	seen[tbl] = key
 
-	for _, v in pairs(tbl) do
-		if not verifySubtablesAreUnique(v, merger, seen) then
-			return false
-		end
+	for k, v in pairs(tbl) do
+		verifySubtablesAreUnique(where, v, merger, level + 1, k, seen)
 	end
-
-	return true
 end
 
 local function deepcopy(tbl, merger, seen)
@@ -167,11 +164,8 @@ end
 local function resolve(default, new, options)
 	local merger = options and options.merger or nil
 
-	if not verifySubtablesAreUnique(default, merger) then
-		error("repeated table in default config", 2)
-	elseif not verifySubtablesAreUnique(new, merger) then
-		error("repeated table in incoming config", 2)
-	end
+	verifySubtablesAreUnique("default", default, merger, 2)
+	verifySubtablesAreUnique("incoming", new, merger, 2)
 
 	return _resolve(default, new, merger, default, 2)
 end
