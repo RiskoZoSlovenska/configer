@@ -72,21 +72,22 @@ This function does not modify `default` nor `new` and deepcopies any tables it u
 The `options` table may contain the following fields:
 * `merger`: A function that can be used to copy or merge any custom objects that shouldn't be passed through configer's default copy function. The `merger` should take three values, `new`, `old` and `check`, and should return two values, `ok` and `res`. `new` is the **kept** *or* **incoming** value, `old` *may* be an existing value, and `check` is a boolean which is truthy if the function is being called only to determine if a certain value is an object or not (this information is used to prevent objects being checked for containing duplicate tables). If `ok` is truthy, configer takes `res` verbatim as the result of the merge; otherwise, the result of the merger is discarded and the value is copied/merged normally. As an example, a minimal merger function which just passes any custom objects through unaltered would look like this:
 ```lua
-local function merger(obj, _, _)
-	return isCustomObject(obj), obj
+local function merger(new, old, _)
+	return isCustomObject(new) or isCustomObject(old), new
 end
 ```
 A slightly more sophisticated a merger which also copies/merges objects will probably look like this:
 ```lua
-local function merger(keptOrIncoming, old, justChecking)
-	local isCustom = isCustomObject(keptOrIncoming)
+local function merger(new, old, justChecking)
+	local newIsCustom = isCustomObject(new)
+	local oldIsCustom = isCustomObject(old)
 
 	if justChecking then
-		return isCustom, nil
-	elseif isCustom and isCustomObject(old) then
-		return true, mergeCustomObjects(keptOrIncoming, old)
-	elseif isCustom then
-		return true, copyCustomObject(keptOrIncoming)
+		return newIsCustom or oldIsCustom, nil
+	elseif newIsCustom and oldIsCustom then
+		return true, mergeCustomObjects(new, old)
+	elseif newIsCustom or oldIsCustom then
+		return true, newIsCustom and copyCustomObject(new) or new
 	end
 end
 ```
