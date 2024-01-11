@@ -162,6 +162,12 @@ describe("configer", function()
 			assert.has.error(function()
 				resolve({ a = "hi" }, { b = DEFAULT.a.c.d })
 			end, "invalid DEFAULT access: DEFAULT.a.c (trying to index a string)")
+			assert.has.error(function()
+				resolve(nil, { b = DEFAULT.a })
+			end, "invalid DEFAULT access: DEFAULT.a (trying to index a nil)")
+			assert.has.error(function()
+				resolve("hi", { b = DEFAULT.sub })
+			end, "invalid DEFAULT access: DEFAULT.sub (trying to index a string)")
 		end)
 	end)
 
@@ -211,6 +217,39 @@ describe("configer", function()
 			h = NIL,
 			i = {},
 		}))
+	end)
+
+	it("should resolve a table config when the default is a non-table", function()
+		local updater = spy(function() return "B" end)
+
+		local source = {
+			a = SET("A"),
+			t = {
+				b = UPDATE(updater),
+			},
+			c = DEFAULT,
+			n = NIL,
+		}
+
+		assert.are.same({
+			a = "A",
+			t = {
+				b = "B",
+			},
+			c = nil,
+			n = nil,
+		}, configer.resolve(nil, source))
+		assert.spy(updater).was.called.with(nil)
+
+		assert.are.same({
+			a = "A",
+			t = {
+				b = "B",
+			},
+			c = "C",
+			n = nil,
+		}, configer.resolve("C", source))
+		assert.spy(updater).was.called.with(nil)
 	end)
 
 	it("should allow a custom merger", function()

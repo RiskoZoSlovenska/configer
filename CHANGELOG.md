@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2024-01-10
+* Fixed keywords not being handled in certain cases
+* Fixed the `merger` exemplars in the README
+
 ## 0.3.0 — 2023-08-15
 * Added the `merger` option
 * Fixed some values being unnecessarily copied multiple times

@@ -151,6 +151,16 @@ local function _resolve(default, new, merger, topDefault, level)
 
 		return merged
 
+	-- Merge incoming table with non-table (resolve incoming keywords)
+	elseif type(new) == "table" then
+		local merged = {}
+
+		for k, v in pairs(new) do
+			merged[k] = _resolve(nil, v, merger, topDefault, level + 1)
+		end
+
+		return merged
+
 	-- Override
 	elseif new ~= nil then
 		return deepcopy(new, merger)

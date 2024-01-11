@@ -49,7 +49,7 @@ Get it from [LuaRocks](https://luarocks.org/):
 luarocks install configer
 ```
 
-Needs Lua 5.2 or higher, but should work in 5.1 environments that have 5.2 compatibility turned on.
+Needs Lua 5.2 or higher, but should also work under LuaJIT with compatibility options.
 
 
 
@@ -147,6 +147,8 @@ results in
 	a = 42,
 }
 ```
+
+If the default value doesn't exist, such as when trying to merge a table value with a non-table one, the updater will receive `nil`.
 
 #### `SET`
 
